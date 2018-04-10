@@ -1,5 +1,5 @@
 \documentclass[twocolumn]{article}
-\title{17-355 Project Proposal: Detecting and Flagging Self-Timing
+\title{17-355 Research Project Proposal: Detecting and Flagging Self-Timing
 Code}
 \author{Cam Wong, Joe Doyle}
 \begin{document}
@@ -26,11 +26,20 @@ There is existing work doing dynamic analysis of programs to detect
 attempts to certain kinds of attacks in progress, and there are
 analysis tools and techniques to make cryptography software less
 vulnerable to this kind of attack, but to our knowledge there is no
-existing framework for analyzing whether a piece of software attempts
-to invoke a timing attack.
+existing framework for statically analyzing whether a piece of
+software attempts to invoke a timing-based attack.
 
 \section{Project Description}
 
+Our goals for this project are to provide, with reasonable confidence,
+a list of ``critical sections'' that are possibly being measured via
+an ``internal timer''. We intend to do this by looking for functions that
+are monotonic with respect to time, then finding sections of code
+``between'' calls to these functions.
+
+For a proof of concept, we will be performing the analysis on C code,
+to leverage the more mature parser and dataflow libraries. A ``real world''
+implementation of this analysis might instead work with Javascript.
 
 \section{Papers}
 
