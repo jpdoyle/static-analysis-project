@@ -33,13 +33,22 @@ software attempts to invoke a timing-based attack.
 
 Our goals for this project are to provide, with reasonable confidence,
 a list of ``critical sections'' that are possibly being measured via
-an ``internal timer''. We intend to do this by looking for functions that
-are monotonic with respect to time, then finding sections of code
-``between'' calls to these functions.
+an ``internal timer''. We intend to do this by examining calls to (and
+stores of calls to) ``timer functions'' (a list of which can be passed
+into the analysis as an input).
 
 For a proof of concept, we will be performing the analysis on C code,
-to leverage the more mature parser and dataflow libraries. A ``real world''
-implementation of this analysis might instead work with Javascript.
+to leverage the more mature parser libraries. A ``real world''
+implementation of this analysis might instead work with Javascript or
+x86. We will also only be focusing on single procedure analyses, but
+may consider extending to full-program analysis after the checkpoint
+should time permit.
+
+For the checkpoint, we aim to have some scaffolding that will demarcate
+all calls to timer functions and where their results are used. From there,
+we can extend the analysis to detect whether those results are compared
+in some way (such as subtracting them), and use that to determine critical
+sections.
 
 \section{Papers}
 
