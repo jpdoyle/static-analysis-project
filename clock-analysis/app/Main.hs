@@ -4,9 +4,11 @@ module Main where
 -- https://github.com/visq/language-c/blob/master/examples/TypeCheck.hs
 
 import Data.List
+import qualified Data.Map as M
 import Language.C
 import Language.C.Analysis.AstAnalysis
 import Language.C.Analysis.TravMonad
+import Language.C.Analysis.SemRep
 import Language.C.System.GCC
 import System.Environment
 import System.IO
@@ -22,10 +24,23 @@ processFile lang cppOpts file =
          hPutStrLn stderr "Failed: Parse Error"
          exitWith (ExitFailure 1)
        Right tu -> case runTrav_ (body tu) of
-                     Left errs      -> mapM_ (hPutStrLn stderr) ("Error" : map show errs)
-                     Right (ast,errs) -> print (pretty ast) >> mapM_ (hPutStrLn stderr) ("Success" : map show errs)
+                     Left errs      -> mapM_ (hPutStrLn stderr)
+                                             ("Error" : map show errs)
+                     Right (ast,errs) ->
+                        (mapM_ (\(x,y) ->
+                            putStrLn ("===== "++show x ++ " =====\n") >>
+                            print y >> putStrLn "\n\n") $ map (\(x,y) ->
+                                            (pretty x,pretty y))
+                                           ast)
+                        >> mapM_ (hPutStrLn stderr)
+                                 ("Success" : map show errs)
   where body tu = do modifyOptions (\opts -> opts { language = lang })
-                     analyseAST tu
+                     decls <- analyseAST tu
+                     let objs = gObjs decls
+                     let fn_objs = (M.filter (\x -> (case x of {
+                            FunctionDef _ -> True;
+                            _ -> False })) objs)
+                     return $ M.toList fn_objs
 
 main :: IO ()
 main =
