@@ -10,9 +10,24 @@ import Language.C.Analysis.AstAnalysis
 import Language.C.Analysis.TravMonad
 import Language.C.Analysis.SemRep
 import Language.C.System.GCC
+import qualified Language.C.Data.Ident as D
+
 import System.Environment
 import System.IO
 import System.Exit
+
+import Search
+
+{- TODO: move this to a dedicated testing place -}
+unwrap (FunctionDef x) = x
+unwrap _ = error "unwrap called on non-function"
+
+testFn :: CExpr -> Bool
+testFn (CCall (CVar (D.Ident "pickme" _ _) _) _ _) = True
+testFn _ = False
+
+getPos (OnlyPos p _) = p
+getPos (NodeInfo p _ _) = p
 
 processFile :: CLanguage -> [String] -> FilePath -> IO ()
 processFile lang cppOpts file =
@@ -29,9 +44,11 @@ processFile lang cppOpts file =
                      Right (ast,errs) ->
                         (mapM_ (\(x,y) ->
                             putStrLn ("===== "++show x ++ " =====\n") >>
-                            print y >> putStrLn "\n\n") $ map (\(x,y) ->
-                                            (pretty x,pretty y))
-                                           ast)
+                              mapM_ (putStrLn . show . getPos) y >>
+                              putStrLn "\n\n"
+                        ) $
+                              map (\(x,y) ->
+                                (pretty x, markBody testFn $ unwrap y)) ast)
                         >> mapM_ (hPutStrLn stderr)
                                  ("Success" : map show errs)
   where body tu = do modifyOptions (\opts -> opts { language = lang })
