@@ -30,8 +30,8 @@ markBody f (FunDef vdec body pos) = traverseAST body
     check' (CMember e _ _ loc) = check' e
     check' (CVar _ _) = []
     check' (CConst _) = []
-    check' (CCompoundLit _ _ loc) = error "TODO"
-    check' _ = error "TODO"
+    check' (CCompoundLit _ _ loc) = [] --error "TODO"
+    check' _ = []--error "TODO"
 
     blockStmts :: [CCompoundBlockItem a] -> [CStatement a]
     blockStmts =
@@ -49,7 +49,7 @@ markBody f (FunDef vdec body pos) = traverseAST body
     traverseAST (CIf e s1 Nothing _) = check e ++ traverseAST s1
     traverseAST (CSwitch e body _) = check e ++ traverseAST body
     traverseAST (CWhile e body _ _) = check e ++ traverseAST body
-    traverseAST (CFor _ _ _ _ _) = error "TODO"
+    traverseAST (CFor _ _ _ _ _) = []--error "TODO"
     traverseAST (CReturn (Just e) _) = check e
     traverseAST _ = []
 
