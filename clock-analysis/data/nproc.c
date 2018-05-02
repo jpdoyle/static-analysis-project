@@ -1,7 +1,14 @@
 #include <pthread.h>
 #include <time.h>
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+
+struct timespec get_time() {
+    struct timespec ret;
+    clock_gettime(CLOCK_MONOTONIC,&ret);
+    return ret;
+}
 
 void work() {
     volatile double d = 0;
@@ -23,20 +30,20 @@ typedef struct {
 void* timing_thread(void* thd_data) {
     timing_data* data = thd_data;
     struct timespec t1,t2;
-    clock_gettime(CLOCK_MONOTONIC,&t1);
-    clock_gettime(CLOCK_MONOTONIC,&t2);
+    t1 = get_time();
+    t2 = get_time();
 
     double outer_time = 0;
 
     while(data->keep_running) {
-        clock_gettime(CLOCK_MONOTONIC,&t1);
+        t1 = get_time();
 
         outer_time =    1000.0*t1.tv_sec + 1e-6*t1.tv_nsec
                      - (1000.0*t2.tv_sec + 1e-6*t2.tv_nsec);
 
         work();
 
-        clock_gettime(CLOCK_MONOTONIC,&t2);
+        t2 = get_time();
         pthread_mutex_lock(&data->lock);
         data->work_time += 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
                      - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec);
@@ -51,8 +58,10 @@ void* timing_thread(void* thd_data) {
 
 int main(void) {
     size_t i = 0;
-    timing_data timings[MAX_N_THREADS] = { 0 };
-    pthread_t threads[MAX_N_THREADS] = { 0 };
+    timing_data timings[MAX_N_THREADS];
+    memset(timings,0,sizeof(timings));
+    pthread_t threads[MAX_N_THREADS];
+    memset(threads,0,sizeof(threads));
     size_t n_threads;
 
     for(i = 0; i < MAX_N_THREADS; ++i) {

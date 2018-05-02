@@ -5,6 +5,7 @@ module Main where
 
 import Data.List
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Language.C
 import Language.C.Analysis.AstAnalysis
 import Language.C.Analysis.TravMonad
@@ -17,13 +18,14 @@ import System.IO
 import System.Exit
 
 import Search
+import CUtil
 
 {- TODO: move this to a dedicated testing place -}
 unwrap (FunctionDef x) = x
 unwrap _ = error "unwrap called on non-function"
 
 testFn :: CExpr -> Bool
-testFn (CCall (CVar (D.Ident "pickme" _ _) _) _ _) = True
+testFn (CCall (CVar (D.Ident "get_time" _ _) _) _ _) = True
 testFn _ = False
 
 getPos (OnlyPos p _) = p
@@ -31,7 +33,7 @@ getPos (NodeInfo p _ _) = p
 
 processFile :: CLanguage -> [String] -> FilePath -> IO ()
 processFile lang cppOpts file =
-  do hPutStr stderr $ file ++ ": "
+  do putStrLn $ file ++ ": "
      result <- parseCFile (newGCC "gcc") Nothing cppOpts file
      case result of
        Left err -> do
@@ -42,13 +44,20 @@ processFile lang cppOpts file =
                      Left errs      -> mapM_ (hPutStrLn stderr)
                                              ("Error" : map show errs)
                      Right (ast,errs) ->
-                        (mapM_ (\(x,y) ->
-                            putStrLn ("===== "++show x ++ " =====\n") >>
-                              mapM_ (putStrLn . show . getPos) y >>
-                              putStrLn "\n\n"
+                        (mapM_ (\(x,y,(dirty,z)) -> do {
+                            if dirty || not (null y) || not (S.null z) then do {
+                                putStrLn ("===== "++show x ++
+                                          (if dirty then " (dirty)"
+                                                    else "") ++
+                                          " =====\n");
+                                mapM_ (putStrLn . show . getPos) y;
+                                mapM_ (putStrLn . show) z;
+                                putStrLn "\n\n"
+                            } else return () }
                         ) $
                               map (\(x,y) ->
-                                (pretty x, markBody testFn $ unwrap y)) ast)
+                                (pretty x, map annotation $ markBody testFn $ unwrap y,
+                                           dirtiedBy testFn $ unwrap y)) ast)
                         >> mapM_ (hPutStrLn stderr)
                                  ("Success" : map show errs)
   where body tu = do modifyOptions (\opts -> opts { language = lang })

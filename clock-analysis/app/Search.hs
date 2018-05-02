@@ -4,52 +4,112 @@ module Search where
 import Language.C
 import Language.C.Syntax.AST
 import Language.C.Analysis.SemRep
+import qualified Data.Set as S
+import Control.Monad ((<=<))
+import Data.Maybe (fromMaybe)
 
 import CUtil
 
-markBody :: (CExpr -> Bool) -> FunDef -> [NodeInfo]
-markBody f (FunDef vdec body pos) = traverseAST body
-  where
-    check :: CExpr -> [NodeInfo]
-    check e = if f e then getExprInfo e : check' e else check' e
+markBody :: (CExpr -> Bool) -> FunDef -> [CExpr]
+markBody f (FunDef vdec body pos) = getMatchingExprs (exprFilter f) body
 
-    check' :: CExpr -> [NodeInfo]
-    check' (CComma es loc) = es >>= check'
-    check' (CAssign _ e1 e2 loc) = check' e1 ++ check' e2
-    check' (CCond e1 (Just e2) e3 loc) = check' e1 ++ check' e2 ++ check' e3
-    check' (CCond e1 Nothing e3 loc) = check' e1 ++ check' e3
-    check' (CBinary _ e1 e2 loc) = check' e1 ++ check' e2
-    check' (CCast _ e loc) = check' e
-    check' (CUnary _ e loc) = check' e
-    check' (CSizeofExpr e loc) = check' e
-    check' (CAlignofExpr e loc) = check' e
-    check' (CComplexReal e loc) = check' e
-    check' (CComplexImag e loc) = check' e
-    check' (CIndex e1 e2 loc) = check' e1 ++ check' e2
-    check' (CCall e1 es loc) = check' e1 ++ (es >>= check')
-    check' (CMember e _ _ loc) = check' e
-    check' (CVar _ _) = []
-    check' (CConst _) = []
-    check' (CCompoundLit _ _ loc) = [] --error "TODO"
-    check' _ = []--error "TODO"
+exprFilter :: (CExpr -> Bool) -> CExpr -> [CExpr]
+exprFilter f e = if f e then e : exprFilter' f e else exprFilter' f e
 
-    blockStmts :: [CCompoundBlockItem a] -> [CStatement a]
-    blockStmts =
-      map (\(CBlockStmt x) -> x) .
-        filter (\s -> case s of CBlockStmt _ -> True
-                                _ -> False)
-    traverseAST :: CStat -> [NodeInfo]
-    traverseAST (CLabel _ st _ _) = traverseAST st
-    traverseAST (CCase exp cases _) = check exp ++ traverseAST cases
-    traverseAST (CDefault exp _) = traverseAST exp
-    traverseAST (CExpr (Just e) _) = check e
-    traverseAST (CCompound ids items _) = blockStmts items >>= traverseAST
-    traverseAST (CIf e s1 (Just s2) _) =
-      check e ++ traverseAST s1 ++ traverseAST s2
-    traverseAST (CIf e s1 Nothing _) = check e ++ traverseAST s1
-    traverseAST (CSwitch e body _) = check e ++ traverseAST body
-    traverseAST (CWhile e body _ _) = check e ++ traverseAST body
-    traverseAST (CFor _ _ _ _ _) = []--error "TODO"
-    traverseAST (CReturn (Just e) _) = check e
-    traverseAST _ = []
+exprFilter' :: (CExpr -> Bool) -> CExpr -> [CExpr]
+exprFilter' f (CComma es loc) = es >>= exprFilter f
+exprFilter' f (CAssign _ e1 e2 loc) = exprFilter f e1 ++ exprFilter f e2
+exprFilter' f (CCond e1 (Just e2) e3 loc) = exprFilter f e1 ++ exprFilter f e2 ++ exprFilter f e3
+exprFilter' f (CCond e1 Nothing e3 loc) = exprFilter f e1 ++ exprFilter f e3
+exprFilter' f (CBinary _ e1 e2 loc) = exprFilter f e1 ++ exprFilter f e2
+exprFilter' f (CCast _ e loc) = exprFilter f e
+exprFilter' f (CUnary _ e loc) = exprFilter f e
+exprFilter' f (CSizeofExpr e loc) = exprFilter f e
+exprFilter' f (CAlignofExpr e loc) = exprFilter f e
+exprFilter' f (CComplexReal e loc) = exprFilter f e
+exprFilter' f (CComplexImag e loc) = exprFilter f e
+exprFilter' f (CIndex e1 e2 loc) = exprFilter f e1 ++ exprFilter f e2
+exprFilter' f (CCall e1 es loc) = exprFilter f e1 ++ (es >>= exprFilter f)
+exprFilter' f (CMember e _ _ loc) = exprFilter f e
+exprFilter' f (CVar _ _) = []
+exprFilter' f (CConst _) = []
+exprFilter' f (CCompoundLit _ _ loc) = [] --error "TODO"
+exprFilter' f _ = [] --error "TODO"
+
+blockStmts :: [CCompoundBlockItem a] -> [CStatement a]
+blockStmts =
+    map (\(CBlockStmt x) -> x) .
+    filter (\s -> case s of { CBlockStmt _ -> True;
+                              _ -> False })
+
+getStats :: CStat -> [CStat]
+getStats s@(CLabel _ st _ _) = s:getStats st
+getStats s@(CCase exp cases _) = s:getStats cases
+getStats s@(CDefault exp _) = s:getStats exp
+getStats s@(CCompound ids items _) = s:(blockStmts items >>= getStats)
+getStats s@(CIf e s1 (Just s2) _) = s:(getStats s1 ++ getStats s2)
+getStats s@(CIf e s1 Nothing _) = s:getStats s1
+getStats s@(CSwitch e body _) = s:getStats body
+getStats s@(CWhile e body _ _) = s:getStats body
+getStats s@(CFor init cmp step body _) = s:getStats body  --error "TODO"
+getStats s = [s]
+
+getMatchingExprs :: (CExpr -> [b]) -> CStat -> [b]
+getMatchingExprs f = f <=< (topLevelExps . getStats)
+
+topLevelExps :: [CStat] -> [CExpr]
+topLevelExps stats = do
+    x <- stats
+    case x of
+        (CCase exp cases _) -> [exp]
+        (CExpr (Just e) _) -> [e]
+        (CIf e s1 (Just s2) _) -> [e]
+        (CIf e s1 Nothing _) -> [e]
+        (CSwitch e body _) -> [e]
+        (CWhile e body _ _) -> [e]
+        (CFor init cmp step body _) ->
+            either (maybe [] (:[])) (\decl -> getDeclExprs decl) init ++
+            maybe [] (:[]) cmp ++ maybe [] (:[]) step
+        (CReturn (Just e) _) -> [e]
+        _ -> []
+
+getSubExprs :: CExpr -> [CExpr]
+getSubExprs = exprFilter (\_ -> True)
+
+subExprMatches :: (CExpr -> Bool) -> CExpr -> Bool
+subExprMatches f x = not $ null $ exprFilter f x
+
+getDeclExprs :: CDecl -> [CExpr]
+getDeclExprs (CStaticAssert _ _ _) = [] -- Static assertions don't affect dataflow
+getDeclExprs (CDecl specs decls _) = do
+    (_,init,size) <- decls
+    maybe [] getInitExprs init ++ maybe [] (:[]) size
+
+getInitExprs :: CInit -> [CExpr]
+getInitExprs (CInitExpr e _) = [e]
+getInitExprs (CInitList init_list _) = map snd init_list >>= getInitExprs
+
+
+
+dirtiedBy :: (CExpr -> Bool) -> FunDef -> (Bool,S.Set Ident) -- The bool is whether the return value is dirtied by any of the expressions
+dirtiedBy pred fun@(FunDef vdec body pos) = (dirtyRet,S.fromList assns)
+    where
+        matching_exps = markBody pred fun
+        matching_nodes = S.fromList $ map annotation $ markBody pred fun
+
+        assns = do
+            e <- markBody (subExprMatches (\x -> annotation x
+                                                 `S.member` matching_nodes))
+                          fun
+
+            (CAssign _ (CVar ident _) _ _) <- return e
+            return ident
+
+        rets = filter isRet $ getStats body
+
+        isRet x@(CReturn _ _) = True
+        isRet _ = False
+
+        dirtyRet = any (\x -> annotation x `S.member` matching_nodes) $ topLevelExps rets
+
 
