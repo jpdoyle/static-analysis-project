@@ -53,8 +53,9 @@ int main(void) {
             time_taken = 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
                         - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec);
 
-            double avg_time = time_taken/n_bytes_used;
-            avg_time += total_avg_time;
+            double avg_time;
+            avg_time = time_taken/n_bytes_used;
+            total_avg_time += avg_time;
             for(i=0; i<n_bytes_used; ++i) {
                 ++data[i];
             }
@@ -73,16 +74,21 @@ int main(void) {
                     }
                     t2 = get_time();
 
-                    if(1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
-                    - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec) > 1.1*CHUNK_SIZE*avg_time) {
-                        ++misses;
-                    }
+                    int missed;
+                    missed = (1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
+                       - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec) > 1.1*CHUNK_SIZE*avg_time);
+                    misses += missed;
+                    /* if(1000.0*t2.tv_sec + 1e-6*t2.tv_nsec */
+                    /*    - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec) > 1.1*CHUNK_SIZE*avg_time) { */
+                    /*     ++misses; */
+                    /* } */
                 }
             }
 
         }
 
-        double miss_rate = (misses/(double)AVG_ITS)
+        double miss_rate;
+        miss_rate = (misses/(double)AVG_ITS)
                            /(n_bytes_used/(double)CHUNK_SIZE);
 
         printf("  %010lu bytes: %lf ms/byte, ~%lf miss rate (%lu misses)\n", n_bytes_used,

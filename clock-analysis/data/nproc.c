@@ -33,7 +33,7 @@ void* timing_thread(void* thd_data) {
     t1 = get_time();
     t2 = get_time();
 
-    double outer_time = 0;
+    double outer_time = 0, inner_time = 0;
 
     while(data->keep_running) {
         t1 = get_time();
@@ -45,8 +45,9 @@ void* timing_thread(void* thd_data) {
 
         t2 = get_time();
         pthread_mutex_lock(&data->lock);
-        data->work_time += 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
+        inner_time = 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
                      - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec);
+        data->work_time += inner_time;
         data->other_time += outer_time;
         ++data->num_samples;
         pthread_mutex_unlock(&data->lock);

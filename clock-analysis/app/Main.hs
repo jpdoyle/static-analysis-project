@@ -57,7 +57,7 @@ processFile lang cppOpts file =
                         ) $
                               map (\(x,y) ->
                                 (pretty x, map annotation $ markBody testFn $ unwrap y,
-                                           dirtiedBy testFn $ unwrap y)) ast)
+                                 head $ dirtiedBy testFn $ (:[]) $ unwrap y)) ast)
                         >> mapM_ (hPutStrLn stderr)
                                  ("Success" : map show errs)
   where body tu = do modifyOptions (\opts -> opts { language = lang })

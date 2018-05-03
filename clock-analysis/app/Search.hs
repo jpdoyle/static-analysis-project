@@ -6,6 +6,7 @@ import Language.C.Syntax.AST
 import Language.C.Analysis.SemRep
 import qualified Data.Set as S
 import Control.Monad ((<=<))
+import Control.Applicative
 import Data.Maybe (fromMaybe)
 
 import CUtil
@@ -89,10 +90,46 @@ getInitExprs :: CInit -> [CExpr]
 getInitExprs (CInitExpr e _) = [e]
 getInitExprs (CInitList init_list _) = map snd init_list >>= getInitExprs
 
+dirtiedBy :: (CExpr -> Bool) -> [FunDef] -> [(Bool,S.Set Ident)]
+dirtiedBy pred fns = snd $ until (uncurry (==))
+                                 (\(_,y) -> (y,dirty_iter y))
+                                 ([],[(False,S.empty) | _ <- fns])
+    where
+        fn_varnames = [name | (FunDef (VarDecl name _ _) _ _) <- fns]
+        fn_idents = flip map fn_varnames $ \x -> case x of
+            (VarName ident _) -> Just ident
+            _ -> Nothing
+
+        matches_fn :: Ident -> CExpr -> Bool
+        matches_fn fn_id (CCall (CVar id _) _ _) | id == fn_id = True
+        matches_fn _ _ = False
+
+        match_fns = flip map fn_idents $
+                        fromMaybe (\_ -> False) . fmap matches_fn
+
+        dirty_iter :: [(Bool,S.Set Ident)] -> [(Bool,S.Set Ident)]
+        dirty_iter prev_results =
+                map (\((b1,s1),(b2,s2)) -> (b1||b2,S.union s1 s2)) $
+                    zip prev_results new_results
+            where
+                new_results = getZipList $
+                    shallow_dirtiedBy <$> (ZipList fn_preds)
+                                      <*> (ZipList fns)
+                uses_dirty_fn x = any ($x) $ map fst $
+                                filter (\(_,(dirty,_)) -> dirty) $
+                                       zip match_fns prev_results
+                uses_dirty_val = flip map (map snd prev_results)
+                                      (\s x -> case x of
+                                        (CVar ident _)  ->
+                                            ident `S.member` s
+                                        _ -> False)
+                fn_preds = [(\x -> pred x || uses_dirty_fn x
+                                          || subExprMatches dirty_val x)
+                            | dirty_val <- uses_dirty_val]
 
 
-dirtiedBy :: (CExpr -> Bool) -> FunDef -> (Bool,S.Set Ident) -- The bool is whether the return value is dirtied by any of the expressions
-dirtiedBy pred fun@(FunDef vdec body pos) = (dirtyRet,S.fromList assns)
+shallow_dirtiedBy :: (CExpr -> Bool) -> FunDef -> (Bool,S.Set Ident) -- The bool is whether the return value is dirtied by any of the expressions
+shallow_dirtiedBy pred fun@(FunDef vdec body pos) = (dirtyRet,S.fromList assns)
     where
         matching_exps = markBody pred fun
         matching_nodes = S.fromList $ map annotation $ markBody pred fun
