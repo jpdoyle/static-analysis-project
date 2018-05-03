@@ -16,6 +16,7 @@ import qualified Language.C.Data.Ident as D
 import System.Environment
 import System.IO
 import System.Exit
+import Control.Monad
 
 import Search
 import CUtil
@@ -44,22 +45,50 @@ processFile lang cppOpts file =
                      Left errs      -> mapM_ (hPutStrLn stderr)
                                              ("Error" : map show errs)
                      Right (ast,errs) ->
-                        (mapM_ (\(x,y,(dirty,z)) -> do {
-                            if dirty || not (null y) || not (S.null z) then do {
+                        -- (mapM_ (\(x,y,(dirty,z)) -> do {
+                        --     if dirty || not (null y) || not (S.null z) then do {
+                        (mapM_ (\(x,y,dirties,dirty_meets) -> do {
+                            if any fst dirties || not (null y) || any (not . S.null . snd) dirties then do {
                                 putStrLn ("===== "++show x ++
-                                          (if dirty then " (dirty)"
-                                                    else "") ++
                                           " =====\n");
-                                mapM_ (putStrLn . show . getPos) y;
-                                mapM_ (putStrLn . show) z;
+                                -- mapM_ (putStrLn . show . getPos) y;
+                                forM_ (zip (map getPos y) dirties) $ (\(p,(dirty,s)) -> do {
+                                    putStrLn (show p ++ (if dirty then " (dirties)" else "") ++ ":");
+                                    forM_ (S.toList s) $ (\x ->
+                                        putStrLn ("\t" ++ show x)
+                                    );
+                                    putStrLn "\n"
+                                });
+
+                                forM_ dirty_meets $ (\(a,b,uses) -> do {
+                                    putStrLn $ "\n" ++ show a ++ "<->" ++ show b ++ " section observed:";
+                                    forM_ (S.toList uses) $ (\x ->
+                                        putStrLn ("\t" ++ show x)
+                                    );
+                                });
+                                -- sequence_ $ (putStrLn . show) <$> zip (map getPos y) dirties;
                                 putStrLn "\n\n"
                             } else return () }
                         ) $
                               map (\(x,y) ->
-                                (pretty x, map annotation $ markBody testFn $ unwrap y,
-                                 head $ dirtiedBy testFn $ (:[]) $ unwrap y)) ast)
+                                -- (pretty x, map annotation $ markBody testFn $ unwrap y,
+                                --  head $ dirtiedBy testFn $ (:[]) $ unwrap y)) ast)
+                                let sites = map annotation $ markBody testFn $ unwrap y
+                                    dirtied = flip map sites $ \s ->
+                                        head $ dirtiedBy ((==s) . annotation) $ (:[]) $ unwrap y
+                                    dirty_uses = flip map dirtied $ \(_,s) ->
+                                        S.fromList $ map annotation $ markBody (\x -> case x of { (CVar ident _) -> ident `S.member` s; _ -> False}) $ unwrap y
+                                    dirty_meets = do
+                                        (a_site,a_uses) <- zip sites dirty_uses
+                                        (b_site,b_uses) <- zip sites dirty_uses
+                                        if a_site >= b_site then [] else do
+                                            let isect = S.intersection a_uses b_uses
+                                            if (S.null isect) then []
+                                                else return (a_site,b_site,isect)
+                                in
+                                    (pretty x, sites, dirtied, dirty_meets)) ast)
                         >> mapM_ (hPutStrLn stderr)
-                                 ("Success" : map show errs)
+                                 ("Done" : map show errs)
   where body tu = do modifyOptions (\opts -> opts { language = lang })
                      decls <- analyseAST tu
                      let objs = gObjs decls

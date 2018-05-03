@@ -139,7 +139,9 @@ shallow_dirtiedBy pred fun@(FunDef vdec body pos) = (dirtyRet,S.fromList assns)
                                                  `S.member` matching_nodes))
                           fun
 
-            (CAssign _ (CVar ident _) _ _) <- return e
+            (CAssign _ lhs _ _) <- return e
+            lhs_sub <- getSubExprs lhs
+            (CVar ident _) <- return lhs_sub
             return ident
 
         rets = filter isRet $ getStats body
