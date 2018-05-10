@@ -1,0 +1,37 @@
+
+\documentclass{article}
+\usepackage{multicol}
+
+\title{Detecting and Flagging Self-Timing Code}
+\author{Cameron Wong, Joe Doyle}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  With the advent of the SPECTRE vulnerability bringing new attention to
+  hardware-level timing-based attacks, much research has gone into mitigating
+  these at a software level. Most of these efforts approach the problem by
+  disabling the attack vector entirely, but have so far shown to have serious
+  performance ramifications. We implemented a source-level static analysis of
+  C code that could detect and mark ``timed sections'' based on further
+  analyses to recognize ``timer functions'', which might be extended to
+  statically determine whether a given source is attempting to execute a
+  timing-based attack.
+\end{abstract}
+
+\begin{multicols*}{2}
+  \section{Background}
+
+  ``Timing attacks'' are a broad category of attacks that can be used to
+  covertly transmit information or inspect the internal state of a program by
+  taking advantage of specific properties about the hardware. An important
+  consequence about the physical nature of these attacks is that this can be
+  used to bypass software-level protections by influencing hardware-internal
+  processes and measuring the time taken to execute. The SPECTRE bug, for
+  example, takes advantage of speculative execution and hardware caching
+  effects to leak the contents of kernel memory.
+\end{multicols*}
+
+\end{document}
+
