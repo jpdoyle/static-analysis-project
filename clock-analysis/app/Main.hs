@@ -61,7 +61,7 @@ processFile lang cppOpts file =
                                 });
 
                                 forM_ dirty_meets $ (\(a,b,uses) -> do {
-                                    putStrLn $ "\n" ++ show a ++ "<->" ++ show b ++ " section observed:";
+                                    putStrLn $ "\nsection:\n " ++ show a ++ "\n^\nv\n " ++ show b ++ "\n  timed by:";
                                     forM_ (S.toList uses) $ (\x ->
                                         putStrLn ("\t" ++ show x)
                                     );

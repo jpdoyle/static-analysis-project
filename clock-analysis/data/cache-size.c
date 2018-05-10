@@ -23,8 +23,6 @@ int main(void) {
     size_t n_bytes_used;
     size_t i,j;
 
-    struct timespec t1,t2;
-
     double time_taken = 0;
     double prev_miss_rate = 0;
 
@@ -39,19 +37,23 @@ int main(void) {
                 ++data[i];
             }
 
-            t1 = get_time();
-
             {
-                volatile uint8_t x = 1;
-                for(i=0; i < n_bytes_used; ++i) {
-                    x *= data[i];
+                struct timespec t1,t2;
+
+                t1 = get_time();
+
+                {
+                    volatile uint8_t x = 1;
+                    for(i=0; i < n_bytes_used; ++i) {
+                        x *= data[i];
+                    }
                 }
+
+                t2 = get_time();
+
+                time_taken = 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
+                            - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec);
             }
-
-            t2 = get_time();
-
-            time_taken = 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
-                        - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec);
 
             double avg_time;
             avg_time = time_taken/n_bytes_used;
@@ -66,17 +68,18 @@ int main(void) {
 
                 volatile uint8_t x = 1;
                 for(i=0; i < n_bytes_used; i += CHUNK_SIZE) {
+                    struct timespec t3,t4;
                     size_t nxt = i+CHUNK_SIZE;
-                    t1 = get_time();
+                    t3 = get_time();
 
                     for(; i < n_bytes_used && i < nxt; ++i) {
                         x *= data[i];
                     }
-                    t2 = get_time();
+                    t4 = get_time();
 
                     int missed;
-                    missed = (1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
-                       - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec) > 1.1*CHUNK_SIZE*avg_time);
+                    missed = (1000.0*t4.tv_sec + 1e-6*t4.tv_nsec
+                       - (1000.0*t3.tv_sec + 1e-6*t3.tv_nsec) > 1.1*CHUNK_SIZE*avg_time);
                     misses += missed;
                     /* if(1000.0*t2.tv_sec + 1e-6*t2.tv_nsec */
                     /*    - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec) > 1.1*CHUNK_SIZE*avg_time) { */
