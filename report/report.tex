@@ -1,10 +1,22 @@
 
 \documentclass[12pt]{article}
 \usepackage[margin={3cm,3cm}]{geometry}
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{multicol}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=magenta,
+  filecolor=magenta
+}
 
 \usepackage{amsmath}
 \usepackage{algorithm2e}
+\usepackage{appendix}
+
 
 \title{Detecting and Flagging Self-Timing Code}
 \author{Cameron Wong, Joe Doyle}
@@ -127,71 +139,102 @@
 
   \section{Solution}
 
-  For our analysis, we chose to act at the abstract syntax level rather
-  than the direct concrete source or instruction level. We believe that this
-  work can be applied similarly to a line-level or instruction-based analysis.
+  Let $E$ be the set of expressions within our language.
 
-  Let $A$ be the set of valid abstract syntax trees (ASTs) of our abstracted
-  language. For the purpose of this analysis, we will consider subtrees to be
-  distinct elements from their parents. Define also the set $C$ of nodes in
-  the control flow graph of the program being analyzed, with an operation
-  $next: C \rightarrow \mathcal{P}(C)$ mapping program states to all immediate
-  successors.
-
-  Suppose also that we have defined some trusted \textit{timer detection function}
-  $f: A \rightarrow \{\texttt{true}, \texttt{false}\}$ that can be used freely
+  Suppose that we have defined some trusted \textit{timer detection function}
+  $f: E \rightarrow \{\texttt{true}, \texttt{false}\}$ that can be used freely
   within the analysis\footnote{Our implementation is a simple string
-  comparison}.
+  comparison, but can be theoretically expanded to arbitrary analyses}.
 
   For the purposes of this analysis, we will consider an \textit{output} of a
   function to be any observable, concrete result (such as a print statement,
   a server response, direct return value, etc).
 
-  We can then define the following function to find all read sites of a timer
-  given the AST $t:P$ of a procedure:
-
-  \begin{equation*}
-    times(t) = \begin{cases}
-      \bigcup\limits_{t' \in subtrees(t)}times(t') &
-        f(t) = \texttt{false} \\
-      \{t\} \cup \bigcup\limits_{t' \in subtrees(t)}times(t') &
-        f(t) = \texttt{true} \\
-      \{ \} & t\ \text{empty} \\
-    \end{cases}
-  \end{equation*}
-
-  Next, we can define our taint flow as follows:
+  We can define our taint flow as follows:
 
   \begin{itemize}
-    \item Any expression $e$ represented by AST node $n$ is considered tainted
-      at $n$ if $n \in times(t)$
-    \item For an assignable $x$, if there exists a reachable node
-      $n = assign(x,e)$ where $e \in times(t)$, then $x$ is tainted at $n$.
-    \item An expression $e$ is tainted at $n$ if $e \in times(t)$ or there
-      exists a subtree $e'$ of $e$ such that $e'$ is tainted at $n$.
-    \item At any CFG node $c$, if $c$ is tainted by $n$, then for all
-      $c' \in next(c)$, $c'$ is tainted by $n$.
+    \item Any expression $e$ is considered tainted by itself if $f(e)$.
+    \item If a subexpression $e'$ of $e$ is tainted, then $e$ is tainted by
+      $e'$.
+    \item For an assignable $x$, if there exists a reachable command
+      $n = assign(x,e)$ where $e$ is tainted, then $x$ is tainted by $e$.
   \end{itemize}
 
-  Finally, we consider the output of the procedure to be a potential leak if
+  Finally, we consider an output of the procedure to be a potential leak if
   it is tainted by at least two unique nodes. We define the
   \textit{critical section} of this value to be the possible control flow
-  paths between any two of the taint sites, which we can easily output
-  ourselves.
+  paths between any two taint sites. Once the dataflow analysis is complete, we
+  can output these sections ourselves.
 
   \section{Results}
 
-  All of our source code can be found at the URL
+  Our proof-of-concept implementation is currently written in Haskell to
+  analyze C; a more practical version might instead target arbitrary
+  Javascript. We also were unable to produce a particularly sophisticated
+  timer analysis function $f$; we instead did a simple string comparison on
+  function call name.
 
-  https://github.com/jpdoyle/static-analysis-project
+  We wrote two implementations of common cache-based timing attacks as input
+  data:
+  \begin{itemize}
+    \item
+  \href{https://github.com/jpdoyle/static-analysis-project/blob/master/clock-analysis/data/cache-size.c}
+      {cache-size.c}
 
-  % TODO: Joe, help with this
+    \item
+      \href{https://github.com/jpdoyle/static-analysis-project/blob/master/clock-analysis/data/nproc.c}
+      {nproc.c}
+  \end{itemize}
+
+  \begin{itemize}
+
+    \item \texttt{cache-size.c}
+
+      Our analysis correctly reports the
+  critical sections between lines 43 and 52 by identifying the relevant dirty
+  variable \texttt{time\_taken} used to compute the output. It also identifies
+  the section between lines 73 and 78.
+
+  Our analysis currently also (erroneously) marks sections between 43 and 73,
+  52 and 73 (etc) as possible critical sections. This is technically correct
+  under the analysis, but not necessarily useful in this case. Improving the
+  accuracy of the results will be a concern moing forwards.
+
+      Finally, we were able to correctly identify the variables \texttt{t1},
+      \texttt{t2}, \texttt{t3} and \texttt{t4} as variables containing timer
+      state.
+
+    \item \texttt{nproc.c}
+
+      We correctly detect the critical timed section between lines 39 and 46,
+      identifying \texttt{t1} and \texttt{t2} as the relevant timer variables.
+  \end{itemize}
+
+  All of our source code can be found on Github in the repository
+
+  \href{https://github.com/jpdoyle/static-analysis-project}{jpdoyle/static-analysis-project}
+
+  \section{Limitations and Future Work}
+
+  \subsubsection*{Timer Function Detection.}
+
+  The obvious flaw is, of course, the necessity for a sophisticated timer
+  detection function. At the present, we were unable to produce a working
+  static method to detect monotonically increasing functions for use as timers.
+  We believe that current standard dataflow techniques are capable of detecting
+  such, but we encountered difficulty in analyzing functions in the presence
+  of multiple threads (such as the timer in \texttt{nproc.c}).
+
+  \subsubsection*{Intraprocedural Analysis.}
+
+  Our work is currently limited to analyzing single procedures. This is
+  unrealistic for real-world use cases, but there is nothing inherent to our
+  analysis that prevents it from being expanded to work intraprocedurally as
+  well.
 
   \section{Related Work}
 
-  % TODO: Joe, help with this
-
-  \textbf{Side Channel Elimination.}
+  \subsubsection*{Cache Side Channel Elimination.}
 
   There has been significant work into
   developing lightweight methods to eliminate cache-based timing side channels
@@ -207,14 +250,50 @@
   applications for which adding the proposed source annotations is infeasible
   or impossible.
 
-  \section{Future Work}
+  \subsubsection*{Retpoline and other software approaches}
 
-  % TODO: Cam, talk about this
+  Google has released a mitigation strategy known as retpoline\cite{retpoline}
+  that can inject software constructs into otherwise-vulnerable code to
+  undirect speculative execution and avoid the cache-related issues. Similar
+  work has been done by various compilers and service manufacturers\cite{gcc}
+  \cite{msft}. Much of this work, however, must be done at compile time or
+  require extensive other measures. Similar to above, we expect extensions of
+  our work to instead be used to implement an ``outer layer'' around sensitive
+  applications without necessitating modifying the application itself.
 
+  \subsubsection*{Robust Static Cache Analysis.}
+
+  Doychev and Kopf implemented an automated static countermeasure against
+  cache-based side channel attacks in executable code\cite{rigor}. However,
+  they appeared to be focused on analyzing the flow of cache memory itself,
+  checking reads or writes to potentially cached memory addresses to determine
+  what information may be leaked. As their implementation is a whole-program
+  analysis, we belive that our work can be used to supplement theirs by
+  directing attention to relevant fields.
+
+  \section{Conclusion}
+
+  With modern technologies allowing more and more precise timing capabilities,
+  statically detecting self-timed code sections will be of increasing
+  importance in the future. Many current software approaches to combating
+  these attacks (clock jitter, code injection) have significant impacts on
+  non-security issues, such as benchmarking or similar time-critical
+  applications. However, such measures need not be taken at the application
+  level. Any long-term security solution should be multifaceted and
+  multilayered.
+
+  As we are simply presenting a proof of concept, we are unsure of the direct
+  applications our work may have in the future, as well as the impacts thereof.
+  Current computer systems often rely heavily on running unvetted code from
+  only partially-trusted sources. By directing efforts towards automatic,
+  course-grained security verification of untrusted code, however, the human
+  burden of securing dependencies can be somewhat alleviated. We found it
+  extremely feasible to flag possibly untrusted timed code sections, the key
+  capability of a timing-based attacker, and hope to use it to eliminate
+  such vulnerabilities in the future.
 \end{multicols*}
 
 \bibliographystyle{IEEEtran}
 \bibliography{spect}
-
 \end{document}
 
