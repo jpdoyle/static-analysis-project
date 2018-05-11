@@ -1,5 +1,6 @@
 
-\documentclass{article}
+\documentclass[12pt]{article}
+\usepackage[margin={3cm,3cm}]{geometry}
 \usepackage{multicol}
 
 \title{Detecting and Flagging Self-Timing Code}
@@ -13,16 +14,15 @@
   hardware-level timing-based attacks, much research has gone into mitigating
   these at a software level. Most of these efforts approach the problem by
   disabling the attack vector entirely, but have so far shown to have serious
-  performance ramifications. We implemented a source-level static analysis of
-  C code that could detect and mark ``timed sections'' based on further
-  analyses to recognize ``timer functions'', which might be extended to
+  performance ramifications. We implemented a source-level static taint
+  analysis of C code that could detect and mark ``timed sections'' based on
+  further analyses to recognize ``timer functions'', which might be extended to
   statically determine whether a given source is attempting to execute a
   timing-based attack.
 \end{abstract}
 
 \begin{multicols*}{2}
-  \section{Background}
-
+  \section{Introduction}
   ``Timing attacks'' are a broad category of attacks that can be used to
   covertly transmit information or inspect the internal state of a program by
   taking advantage of specific properties about the hardware. An important
@@ -31,7 +31,123 @@
   processes and measuring the time taken to execute. The SPECTRE bug, for
   example, takes advantage of speculative execution and hardware caching
   effects to leak the contents of kernel memory.
+
+  The ability of a well-constructed timing attack to escape software jails and
+  sandboxes is especially concerning in the age of browsers, in which users
+  routinely download and run untrusted scripts and programs (often unknowingly)
+  while browsing the web. Several browsers have implemented internal changes to
+  combat this (such as reducing clock precision and disabling shared memory
+  primitives) that have proven to be somewhat effective. However, there do not
+  appear to be many attempts to statically verify that certain sections of a
+  given program are safe to execute. Most attempts are ``all-or-nothing'' --
+  mitigation must be used with entire applications or not at all. This can be
+  a deal-breaker in performance- or correctness-critical situations, thus
+  exposing them to severe security vulnerabilities\footnote{See related work}.
+
+  It is critical, however, that the perpetrator of a timing attack have some
+  capability to measure the relative execution time of a particular procedure.
+  The original SPECTRE paper, for example, uses calls to GCC's builtin
+  \texttt{\_\_rtdscp} primitive to measure clock cycles taken to perform a
+  particular malicious memory access\cite{spectrep}. Towards that end, we
+  believe that it should be possible to statically detect and delineate between
+  calls and stores of possible ``timer functions'' and use this data to apply
+  further cache attack mitigation in a more fine-grained manner.
+
+  \section{Background}
+
+  \subsection{Timing Attacks}
+
+  The subject of this work is primarily attacks intended to exploit
+  hardware-based caches via analysis of the total execution time of the victim
+  to leak secret information to an adversary\cite{Ge2018}. This is typically
+  done by measuring the time taken to perform a large number of memory accesses
+  within attacker-controlled code and inferring the total number of resulting
+  cache hits and misses, which can then be used to guess unrelated information
+  about the victim's internal state. The specifics of how exactly this is done
+  and what information can be gleaned is specific to the attack and is far
+  beyond the scope of this work. We are instead concerned with how and where
+  the time is measured, which can be used to demarcate code sections that may
+  be used for a timing-based attack.
+
+  \subsection{Timing Channels}
+
+  Unsurprisingly, a timing-based attack requires some way of recording the
+  passage of time. This can be standard wall-clock time, but in practice there
+  are any number of workable replacements. The only information of importance
+  in this case is the \textit{relative time} in some units of necessary
+  precision between two distinct program states, so any
+  monotonically-increasing counter will, in theory, be sufficient\cite{Ge2018}.
+  Of other interest is the distinction between
+  concurrent and non-concurrent attacks, which distinguish whether the attacker
+  is able to receive and react to information gained while the victim is
+  executing\cite{lcache}. Currently, our implementation only properly
+  detects non-concurrent attacks. However, there is nothing in particular about
+  a concurrent timing-based attack that would require significant changes to
+  our model, only more extensive further analysis.
+
+  \subsection{Taint Analysis}
+
+  Taint analysis is a technique used to narrow down a source of vulnerabilities
+  by isolating what internal state can or cannot be influenced by untrusted
+  input. This is typically done by examining the \textit{data flow} of a given
+  piece of information -- if tainted object $X$ is used to compute the value of
+  some value $Y$ under some execution flow, the resulting value is considered
+  tainted by the untrusted $X$, and cannot necessarily be trusted
+  itself\cite{taint}.
+
+  We adjusted the definition of ``tainted'' in this case to refer specifically
+  to objects and values computed using a timer function (as, in theory, the
+  entire program is considered untrusted). However, the core principles still
+  hold.
+
+  \section{Threat Model}
+
+  Attackers to our model will be working under the following constraints:
+
+  \begin{itemize}
+    \item Attacker may perform arbitrary local code execution within a defined
+      environment via a known, untrusted channel. This environment may or may
+      not be subject to external security measures such as operating system
+      permissions, sandboxing, etc.
+    \item No access to underlying hardware or operating system. This eliminates
+      the possibility of other side channels, such as power consumption or
+      sound analysis.
+  \end{itemize}
+
+  We believe this to be a realistic threat model, as it can be fitted to
+  common attack vectors in real systems, such as
+
+  \begin{itemize}
+    \item Malicious Javascript injection into websites, executed via browser
+    \item Malicious code published via a large package or dependency manager
+  \end{itemize}
+
+  \section{Procedure}
+
+  \section{Related Work}
+
+  \textbf{Side Channel Elimination.}
+
+  There has been significant work into
+  developing lightweight methods to eliminate cache-based timing side channels
+  entirely via lazy cleansing of shared state before handing control over to
+  untrusted processes\cite{lcache}. We believe our work to be orthogonal to
+  this in that Braun et al's work is largely targeted at mitigation at a
+  blue-team (defending) source level, whereas our work is targeted at detecting
+  red-team (attacking) efforts at the source level. The proposed  mitigations
+  require the ability to inspect and update the source code of
+  security-critical applications to insert the necessary source annotations to
+  demarcate secret sections. Our approach, while possibly less effective, is
+  more conducive to higher-level defense layers that can be applied on top of
+  applications for which adding the proposed source annotations is infeasible
+  or impossible.
+
+  \section{Future Work}
+
 \end{multicols*}
+
+\bibliographystyle{IEEEtran}
+\bibliography{spect}
 
 \end{document}
 

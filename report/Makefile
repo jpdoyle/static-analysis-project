@@ -1,6 +1,9 @@
 
-FILE=report.tex
+FILE=report
 
 all:
-	pdflatex report.tex && pdflatex report.tex
+	pdflatex $(FILE).tex
+	bibtex $(FILE)
+	pdflatex $(FILE).tex
+	pdflatex $(FILE).tex
 
