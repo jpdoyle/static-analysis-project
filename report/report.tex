@@ -3,6 +3,9 @@
 \usepackage[margin={3cm,3cm}]{geometry}
 \usepackage{multicol}
 
+\usepackage{amsmath}
+\usepackage{algorithm2e}
+
 \title{Detecting and Flagging Self-Timing Code}
 \author{Cameron Wong, Joe Doyle}
 
@@ -122,9 +125,71 @@
     \item Malicious code published via a large package or dependency manager
   \end{itemize}
 
-  \section{Procedure}
+  \section{Solution}
+
+  For our analysis, we chose to act at the abstract syntax level rather
+  than the direct concrete source or instruction level. We believe that this
+  work can be applied similarly to a line-level or instruction-based analysis.
+
+  Let $A$ be the set of valid abstract syntax trees (ASTs) of our abstracted
+  language. For the purpose of this analysis, we will consider subtrees to be
+  distinct elements from their parents. Define also the set $C$ of nodes in
+  the control flow graph of the program being analyzed, with an operation
+  $next: C \rightarrow \mathcal{P}(C)$ mapping program states to all immediate
+  successors.
+
+  Suppose also that we have defined some trusted \textit{timer detection function}
+  $f: A \rightarrow \{\texttt{true}, \texttt{false}\}$ that can be used freely
+  within the analysis\footnote{Our implementation is a simple string
+  comparison}.
+
+  For the purposes of this analysis, we will consider an \textit{output} of a
+  function to be any observable, concrete result (such as a print statement,
+  a server response, direct return value, etc).
+
+  We can then define the following function to find all read sites of a timer
+  given the AST $t:P$ of a procedure:
+
+  \begin{equation*}
+    times(t) = \begin{cases}
+      \bigcup\limits_{t' \in subtrees(t)}times(t') &
+        f(t) = \texttt{false} \\
+      \{t\} \cup \bigcup\limits_{t' \in subtrees(t)}times(t') &
+        f(t) = \texttt{true} \\
+      \{ \} & t\ \text{empty} \\
+    \end{cases}
+  \end{equation*}
+
+  Next, we can define our taint flow as follows:
+
+  \begin{itemize}
+    \item Any expression $e$ represented by AST node $n$ is considered tainted
+      at $n$ if $n \in times(t)$
+    \item For an assignable $x$, if there exists a reachable node
+      $n = assign(x,e)$ where $e \in times(t)$, then $x$ is tainted at $n$.
+    \item An expression $e$ is tainted at $n$ if $e \in times(t)$ or there
+      exists a subtree $e'$ of $e$ such that $e'$ is tainted at $n$.
+    \item At any CFG node $c$, if $c$ is tainted by $n$, then for all
+      $c' \in next(c)$, $c'$ is tainted by $n$.
+  \end{itemize}
+
+  Finally, we consider the output of the procedure to be a potential leak if
+  it is tainted by at least two unique nodes. We define the
+  \textit{critical section} of this value to be the possible control flow
+  paths between any two of the taint sites, which we can easily output
+  ourselves.
+
+  \section{Results}
+
+  All of our source code can be found at the URL
+
+  https://github.com/jpdoyle/static-analysis-project
+
+  % TODO: Joe, help with this
 
   \section{Related Work}
+
+  % TODO: Joe, help with this
 
   \textbf{Side Channel Elimination.}
 
@@ -143,6 +208,8 @@
   or impossible.
 
   \section{Future Work}
+
+  % TODO: Cam, talk about this
 
 \end{multicols*}
 
