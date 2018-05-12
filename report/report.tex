@@ -5,6 +5,9 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{multicol}
 \usepackage{hyperref}
+\usepackage[title]{appendix}
+\usepackage{listings}
+\usepackage{verbatim}
 \hypersetup{
   colorlinks=true,
   linkcolor=blue,
@@ -29,11 +32,11 @@
   hardware-level timing-based attacks, much research has gone into mitigating
   these at a software level. Most of these efforts approach the problem by
   disabling the attack vector entirely, but have so far shown to have serious
-  performance ramifications. We implemented a source-level static taint
-  analysis of C code that could detect and mark ``timed sections'' based on
-  further analyses to recognize ``timer functions'', which might be extended to
-  statically determine whether a given source is attempting to execute a
-  timing-based attack.
+  performance ramifications. We implemented a source-level static
+  taint analysis of C code as a proof-of-concept for detecting and
+  marking ``timed sections'', as timed by ``timer functions''. This
+  analysis might  be extended to statically determine whether a
+  program might execute a timing-based attack..
 \end{abstract}
 
 \begin{multicols*}{2}
@@ -79,62 +82,68 @@
   within attacker-controlled code and inferring the total number of resulting
   cache hits and misses, which can then be used to guess unrelated information
   about the victim's internal state. The specifics of how exactly this is done
-  and what information can be gleaned is specific to the attack and is far
+  and what information can be gleaned is specific to the attack and is
   beyond the scope of this work. We are instead concerned with how and where
   the time is measured, which can be used to demarcate code sections that may
   be used for a timing-based attack.
 
   \subsection{Timing Channels}
 
-  Unsurprisingly, a timing-based attack requires some way of recording the
-  passage of time. This can be standard wall-clock time, but in practice there
-  are any number of workable replacements. The only information of importance
-  in this case is the \textit{relative time} in some units of necessary
-  precision between two distinct program states, so any
-  monotonically-increasing counter will, in theory, be sufficient\cite{Ge2018}.
-  Of other interest is the distinction between
-  concurrent and non-concurrent attacks, which distinguish whether the attacker
-  is able to receive and react to information gained while the victim is
-  executing\cite{lcache}. Currently, our implementation only properly
-  detects non-concurrent attacks. However, there is nothing in particular about
-  a concurrent timing-based attack that would require significant changes to
-  our model, only more extensive further analysis.
+  Timing-based attacks require some way of recording the passage of
+  time. This can be standard wall-clock time, but in practice there
+  are any number of workable replacements. The only information of
+  importance in this case is the \textit{relative time} in some units
+  of necessary precision between two distinct program states,
+  so any monotonically-increasing counter will, in theory, be
+  sufficient\cite{Ge2018}. Of other interest is the distinction
+  between concurrent and non-concurrent attacks, which distinguish
+  whether the attacker is able to receive and react to information
+  gained while the victim is executing\cite{lcache}. Currently, our
+  implementation only properly detects non-concurrent attacks.
+  However, our model can be combined with more extensive analyses to
+  detect concurrent variants of these attacks.
 
   \subsection{Taint Analysis}
 
-  Taint analysis is a technique used to narrow down a source of vulnerabilities
-  by isolating what internal state can or cannot be influenced by untrusted
-  input. This is typically done by examining the \textit{data flow} of a given
-  piece of information -- if tainted object $X$ is used to compute the value of
-  some value $Y$ under some execution flow, the resulting value is considered
-  tainted by the untrusted $X$, and cannot necessarily be trusted
-  itself\cite{taint}.
+  Taint analysis is a technique used to narrow down a source of
+  vulnerabilities by isolating what internal state can or cannot be
+  influenced by untrusted input. This is typically done by examining
+  the \textit{data flow} of a given piece of information -- if tainted
+  object $X$ is used to compute the value of some value $Y$ under some
+  execution flow, the resulting value is considered tainted by the
+  untrusted $X$, and cannot necessarily be trusted itself\cite{taint}.
 
   We adjusted the definition of ``tainted'' in this case to refer specifically
-  to objects and values computed using a timer function (as, in theory, the
-  entire program is considered untrusted). However, the core principles still
-  hold.
+  to objects and values computed using a timer function (as, in
+  theory, the entire program is considered untrusted). However, the
+  core principles still hold.
 
   \section{Threat Model}
 
-  Attackers to our model will be working under the following constraints:
+  Our model will detects attacks under the following constraints:
 
   \begin{itemize}
-    \item Attacker may perform arbitrary local code execution within a defined
-      environment via a known, untrusted channel. This environment may or may
-      not be subject to external security measures such as operating system
-      permissions, sandboxing, etc.
-    \item No access to underlying hardware or operating system. This eliminates
-      the possibility of other side channels, such as power consumption or
-      sound analysis.
+    \item An attacker may perform arbitrary local code execution within a
+        defined environment via a known, untrusted channel. This
+        environment may or may not be subject to external security
+        measures such as operating system permissions, sandboxing,
+        etc.
+    \item The untrusted local code has no access to underlying
+        hardware or operating system. This eliminates the possibility
+        of other side channels, such as power consumption or sound
+        analysis.
   \end{itemize}
 
-  We believe this to be a realistic threat model, as it can be fitted to
-  common attack vectors in real systems, such as
+  We believe this to be a realistic threat model, as it can be fitted
+  to common attack vectors in real systems, such as
 
   \begin{itemize}
-    \item Malicious Javascript injection into websites, executed via browser
-    \item Malicious code published via a large package or dependency manager
+    \item Javascript injection into websites, executed via
+        browser
+    \item Malicious code published via a large package or dependency
+        manager
+    \item Malicious third-party code running in a sandboxed
+        environment such as a cloud-hosted virtual machine
   \end{itemize}
 
   \section{Solution}
@@ -143,8 +152,9 @@
 
   Suppose that we have defined some trusted \textit{timer detection function}
   $f: E \rightarrow \{\texttt{true}, \texttt{false}\}$ that can be used freely
-  within the analysis\footnote{Our implementation is a simple string
-  comparison, but can be theoretically expanded to arbitrary analyses}.
+  within the analysis\footnote{Our implementation uses simple
+  variable-name comparison, but can be theoretically expanded to
+  arbitrary analyses}.
 
   For the purposes of this analysis, we will consider an \textit{output} of a
   function to be any observable, concrete result (such as a print statement,
@@ -168,25 +178,14 @@
 
   \section{Results}
 
-  Our proof-of-concept implementation is currently written in Haskell to
-  analyze C; a more practical version might instead target arbitrary
-  Javascript. We also were unable to produce a particularly sophisticated
-  timer analysis function $f$; we instead did a simple string comparison on
-  function call name.
+  Our proof-of-concept implementation is written in Haskell to analyze
+  C; a more broadly practical version might instead target arbitrary
+  Javascript or x86. We did not implement a particularly sophisticated
+  timer analysis function $f$; we instead did a simple string
+  comparison on function call name.
 
   We wrote two implementations of common cache-based timing attacks as input
-  data:
-  \begin{itemize}
-    \item
-  \href{https://github.com/jpdoyle/static-analysis-project/blob/master/clock-analysis/data/cache-size.c}
-      {cache-size.c}
-
-    \item
-      \href{https://github.com/jpdoyle/static-analysis-project/blob/master/clock-analysis/data/nproc.c}
-      {nproc.c}
-  \end{itemize}
-
-  \begin{itemize}
+  data (see Appendix A): \begin{itemize}
 
     \item \texttt{cache-size.c}
 
@@ -218,12 +217,11 @@
 
   \subsubsection*{Timer Function Detection.}
 
-  The obvious flaw is, of course, the necessity for a sophisticated timer
-  detection function. At the present, we were unable to produce a working
-  static method to detect monotonically increasing functions for use as timers.
-  We believe that current standard dataflow techniques are capable of detecting
-  such, but we encountered difficulty in analyzing functions in the presence
-  of multiple threads (such as the timer in \texttt{nproc.c}).
+  A major limitation is the necessity for a sophisticated timer detection
+  function. An extension of this system would be to detect monotonically
+  increasing shared variables for use as timers. We believe that current
+  standard dataflow techniques are capable of detecting such, but this was
+  slightly beyond the scope of our project.
 
   \subsubsection*{Intraprocedural Analysis.}
 
@@ -240,9 +238,9 @@
   developing lightweight methods to eliminate cache-based timing side channels
   entirely via lazy cleansing of shared state before handing control over to
   untrusted processes\cite{lcache}. We believe our work to be orthogonal to
-  this in that Braun et al's work is largely targeted at mitigation at a
+  this in that Braun et al's work is primarily for mitigation at a
   blue-team (defending) source level, whereas our work is targeted at detecting
-  red-team (attacking) efforts at the source level. The proposed  mitigations
+  red-team (attacking) efforts at the source level. The proposed mitigations
   require the ability to inspect and update the source code of
   security-critical applications to insert the necessary source annotations to
   demarcate secret sections. Our approach, while possibly less effective, is
@@ -257,7 +255,7 @@
   undirect speculative execution and avoid the cache-related issues. Similar
   work has been done by various compilers and service manufacturers\cite{gcc}
   \cite{msft}. Much of this work, however, must be done at compile time or
-  require extensive other measures. Similar to above, we expect extensions of
+  requires extensive other measures. Similar to above, we expect extensions of
   our work to instead be used to implement an ``outer layer'' around sensitive
   applications without necessitating modifying the application itself.
 
@@ -273,27 +271,44 @@
 
   \section{Conclusion}
 
-  With modern technologies allowing more and more precise timing capabilities,
-  statically detecting self-timed code sections will be of increasing
-  importance in the future. Many current software approaches to combating
-  these attacks (clock jitter, code injection) have significant impacts on
-  non-security issues, such as benchmarking or similar time-critical
-  applications. However, such measures need not be taken at the application
-  level. Any long-term security solution should be multifaceted and
-  multilayered.
+  Modern computer systems run untrusted code, sandboxed code at speeds
+  that allow the sandboxed code to infer fine-grained information
+  about the external system via precise timing. Many current
+  mitigations (e.g. clock jitter, stronger isolation, removing
+  concurrency features) are incomplete and often have significant
+  negative impacts on performance and other.
 
-  As we are simply presenting a proof of concept, we are unsure of the direct
-  applications our work may have in the future, as well as the impacts thereof.
-  Current computer systems often rely heavily on running unvetted code from
-  only partially-trusted sources. By directing efforts towards automatic,
-  course-grained security verification of untrusted code, however, the human
-  burden of securing dependencies can be somewhat alleviated. We found it
-  extremely feasible to flag possibly untrusted timed code sections, the key
-  capability of a timing-based attacker, and hope to use it to eliminate
-  such vulnerabilities in the future.
+  By directing efforts towards automatic, course-grained security
+  verification of untrusted code, the human burden of securing
+  dependencies can be somewhat alleviated. Our program serves as a
+  strong proof of concept for identifying possibly-untrusted timed
+  code sections. If such a system is integrated into a web browser or
+  hypervisor, timing-based attacks can be flagged and mitigations can
+  automatically be taken. A mature version of this system could be
+  used to decide whether or not performance-compromising mitigations
+  need to be taken, allowing untrusted code to be run faster while
+  remaining safe.
 \end{multicols*}
 
 \bibliographystyle{IEEEtran}
 \bibliography{spect}
+
+\newpage
+\begin{appendices}
+\section{Source code listings}
+\texttt{\href{https://github.com/jpdoyle/static-analysis-project/blob/master/clock-analysis/data/cache-size.c}{cache-size.c}}:
+    \lstinputlisting[numbers=left,basicstyle=\ttfamily\tiny,language=c,frame=single]{../clock-analysis/data/cache-size.c}
+    Analysis:
+    \lstinputlisting[breaklines=true,basicstyle=\ttfamily\tiny,frame=single]{../clock-analysis/cache-size.txt}
+
+\newpage
+\href{https://github.com/jpdoyle/static-analysis-project/blob/master/clock-analysis/data/nproc.c}
+      {nproc.c}:
+    \lstinputlisting[numbers=left,basicstyle=\ttfamily\tiny,language=c,frame=single]{../clock-analysis/data/nproc.c}
+
+    Analysis:
+    \lstinputlisting[breaklines=true,basicstyle=\ttfamily\tiny,frame=single]{../clock-analysis/nproc.txt}
+\end{appendices}
+
 \end{document}
 

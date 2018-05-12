@@ -1,0 +1,32 @@
+data/nproc.c: 
+===== timing_thread =====
+
+("data/nproc.c": line 36):
+	Ident "t1" 6388 (NodeInfo ("data/nproc.c": line 36) (("data/nproc.c": line 36),2) (Name {nameId = 16123}))
+	Ident "data" 205336804 (NodeInfo ("data/nproc.c": line 44) (("data/nproc.c": line 44),4) (Name {nameId = 16180}))
+	Ident "inner_time" 435755592 (NodeInfo ("data/nproc.c": line 42) (("data/nproc.c": line 42),10) (Name {nameId = 16149}))
+
+
+("data/nproc.c": line 40):
+	Ident "t2" 6516 (NodeInfo ("data/nproc.c": line 40) (("data/nproc.c": line 40),2) (Name {nameId = 16133}))
+	Ident "data" 205336804 (NodeInfo ("data/nproc.c": line 44) (("data/nproc.c": line 44),4) (Name {nameId = 16180}))
+	Ident "inner_time" 435755592 (NodeInfo ("data/nproc.c": line 42) (("data/nproc.c": line 42),10) (Name {nameId = 16149}))
+
+
+
+section:
+ (NodeInfo ("data/nproc.c": line 36) (("data/nproc.c": line 36),1) Name {nameId = 16127})
+^
+v
+ (NodeInfo ("data/nproc.c": line 40) (("data/nproc.c": line 40),1) Name {nameId = 16138})
+  timed by:
+	(NodeInfo ("data/nproc.c": line 35) (("data/nproc.c": line 35),4) Name {nameId = 16120})
+	(NodeInfo ("data/nproc.c": line 41) (("data/nproc.c": line 41),4) Name {nameId = 16144})
+	(NodeInfo ("data/nproc.c": line 42) (("data/nproc.c": line 42),10) Name {nameId = 16151})
+	(NodeInfo ("data/nproc.c": line 44) (("data/nproc.c": line 44),4) Name {nameId = 16182})
+	(NodeInfo ("data/nproc.c": line 44) (("data/nproc.c": line 44),10) Name {nameId = 16186})
+	(NodeInfo ("data/nproc.c": line 45) (("data/nproc.c": line 45),4) Name {nameId = 16190})
+	(NodeInfo ("data/nproc.c": line 46) (("data/nproc.c": line 46),4) Name {nameId = 16198})
+
+
+

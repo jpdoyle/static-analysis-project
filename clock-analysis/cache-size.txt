@@ -1,0 +1,165 @@
+data/cache-size.c: 
+===== main =====
+
+("data/cache-size.c": line 43):
+	Ident "t1" 6388 (NodeInfo ("data/cache-size.c": line 43) (("data/cache-size.c": line 43),2) (Name {nameId = 18694}))
+	Ident "missed" 243083090 (NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) (Name {nameId = 18894}))
+	Ident "misses" 243085010 (NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) (Name {nameId = 18931}))
+	Ident "total_avg_time" 408095412 (NodeInfo ("data/cache-size.c": line 60) (("data/cache-size.c": line 60),14) (Name {nameId = 18784}))
+	Ident "avg_time" 414543957 (NodeInfo ("data/cache-size.c": line 59) (("data/cache-size.c": line 59),8) (Name {nameId = 18776}))
+	Ident "prev_miss_rate" 428921654 (NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) (Name {nameId = 19002}))
+	Ident "time_taken" 439625400 (NodeInfo ("data/cache-size.c": line 54) (("data/cache-size.c": line 54),10) (Name {nameId = 18739}))
+	Ident "miss_rate" 487943857 (NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) (Name {nameId = 18947}))
+
+
+("data/cache-size.c": line 52):
+	Ident "t2" 6516 (NodeInfo ("data/cache-size.c": line 52) (("data/cache-size.c": line 52),2) (Name {nameId = 18732}))
+	Ident "missed" 243083090 (NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) (Name {nameId = 18894}))
+	Ident "misses" 243085010 (NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) (Name {nameId = 18931}))
+	Ident "total_avg_time" 408095412 (NodeInfo ("data/cache-size.c": line 60) (("data/cache-size.c": line 60),14) (Name {nameId = 18784}))
+	Ident "avg_time" 414543957 (NodeInfo ("data/cache-size.c": line 59) (("data/cache-size.c": line 59),8) (Name {nameId = 18776}))
+	Ident "prev_miss_rate" 428921654 (NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) (Name {nameId = 19002}))
+	Ident "time_taken" 439625400 (NodeInfo ("data/cache-size.c": line 54) (("data/cache-size.c": line 54),10) (Name {nameId = 18739}))
+	Ident "miss_rate" 487943857 (NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) (Name {nameId = 18947}))
+
+
+("data/cache-size.c": line 73):
+	Ident "t3" 6644 (NodeInfo ("data/cache-size.c": line 73) (("data/cache-size.c": line 73),2) (Name {nameId = 18851}))
+	Ident "missed" 243083090 (NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) (Name {nameId = 18894}))
+	Ident "misses" 243085010 (NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) (Name {nameId = 18931}))
+	Ident "prev_miss_rate" 428921654 (NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) (Name {nameId = 19002}))
+	Ident "miss_rate" 487943857 (NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) (Name {nameId = 18947}))
+
+
+("data/cache-size.c": line 78):
+	Ident "t4" 6772 (NodeInfo ("data/cache-size.c": line 78) (("data/cache-size.c": line 78),2) (Name {nameId = 18881}))
+	Ident "missed" 243083090 (NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) (Name {nameId = 18894}))
+	Ident "misses" 243085010 (NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) (Name {nameId = 18931}))
+	Ident "prev_miss_rate" 428921654 (NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) (Name {nameId = 19002}))
+	Ident "miss_rate" 487943857 (NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) (Name {nameId = 18947}))
+
+
+
+section:
+ (NodeInfo ("data/cache-size.c": line 43) (("data/cache-size.c": line 43),1) Name {nameId = 18698})
+^
+v
+ (NodeInfo ("data/cache-size.c": line 52) (("data/cache-size.c": line 52),1) Name {nameId = 18737})
+  timed by:
+	(NodeInfo ("data/cache-size.c": line 54) (("data/cache-size.c": line 54),10) Name {nameId = 18741})
+	(NodeInfo ("data/cache-size.c": line 59) (("data/cache-size.c": line 59),8) Name {nameId = 18777})
+	(NodeInfo ("data/cache-size.c": line 59) (("data/cache-size.c": line 59),10) Name {nameId = 18779})
+	(NodeInfo ("data/cache-size.c": line 60) (("data/cache-size.c": line 60),14) Name {nameId = 18786})
+	(NodeInfo ("data/cache-size.c": line 60) (("data/cache-size.c": line 60),8) Name {nameId = 18788})
+	(NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) Name {nameId = 18895})
+	(NodeInfo ("data/cache-size.c": line 82) (("data/cache-size.c": line 82),8) Name {nameId = 18927})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18933})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18935})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) Name {nameId = 18948})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),6) Name {nameId = 18950})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),14) Name {nameId = 18972})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),9) Name {nameId = 18976})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),6) Name {nameId = 18978})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),6) Name {nameId = 18982})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),9) Name {nameId = 18986})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),14) Name {nameId = 18989})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) Name {nameId = 19005})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),9) Name {nameId = 19007})
+
+section:
+ (NodeInfo ("data/cache-size.c": line 43) (("data/cache-size.c": line 43),1) Name {nameId = 18698})
+^
+v
+ (NodeInfo ("data/cache-size.c": line 73) (("data/cache-size.c": line 73),1) Name {nameId = 18855})
+  timed by:
+	(NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) Name {nameId = 18895})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18933})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18935})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) Name {nameId = 18948})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),6) Name {nameId = 18950})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),9) Name {nameId = 18976})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),6) Name {nameId = 18978})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),6) Name {nameId = 18982})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),9) Name {nameId = 18986})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),14) Name {nameId = 18989})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) Name {nameId = 19005})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),9) Name {nameId = 19007})
+
+section:
+ (NodeInfo ("data/cache-size.c": line 43) (("data/cache-size.c": line 43),1) Name {nameId = 18698})
+^
+v
+ (NodeInfo ("data/cache-size.c": line 78) (("data/cache-size.c": line 78),1) Name {nameId = 18887})
+  timed by:
+	(NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) Name {nameId = 18895})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18933})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18935})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) Name {nameId = 18948})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),6) Name {nameId = 18950})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),9) Name {nameId = 18976})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),6) Name {nameId = 18978})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),6) Name {nameId = 18982})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),9) Name {nameId = 18986})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),14) Name {nameId = 18989})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) Name {nameId = 19005})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),9) Name {nameId = 19007})
+
+section:
+ (NodeInfo ("data/cache-size.c": line 52) (("data/cache-size.c": line 52),1) Name {nameId = 18737})
+^
+v
+ (NodeInfo ("data/cache-size.c": line 73) (("data/cache-size.c": line 73),1) Name {nameId = 18855})
+  timed by:
+	(NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) Name {nameId = 18895})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18933})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18935})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) Name {nameId = 18948})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),6) Name {nameId = 18950})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),9) Name {nameId = 18976})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),6) Name {nameId = 18978})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),6) Name {nameId = 18982})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),9) Name {nameId = 18986})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),14) Name {nameId = 18989})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) Name {nameId = 19005})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),9) Name {nameId = 19007})
+
+section:
+ (NodeInfo ("data/cache-size.c": line 52) (("data/cache-size.c": line 52),1) Name {nameId = 18737})
+^
+v
+ (NodeInfo ("data/cache-size.c": line 78) (("data/cache-size.c": line 78),1) Name {nameId = 18887})
+  timed by:
+	(NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) Name {nameId = 18895})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18933})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18935})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) Name {nameId = 18948})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),6) Name {nameId = 18950})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),9) Name {nameId = 18976})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),6) Name {nameId = 18978})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),6) Name {nameId = 18982})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),9) Name {nameId = 18986})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),14) Name {nameId = 18989})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) Name {nameId = 19005})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),9) Name {nameId = 19007})
+
+section:
+ (NodeInfo ("data/cache-size.c": line 73) (("data/cache-size.c": line 73),1) Name {nameId = 18855})
+^
+v
+ (NodeInfo ("data/cache-size.c": line 78) (("data/cache-size.c": line 78),1) Name {nameId = 18887})
+  timed by:
+	(NodeInfo ("data/cache-size.c": line 81) (("data/cache-size.c": line 81),6) Name {nameId = 18895})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18933})
+	(NodeInfo ("data/cache-size.c": line 83) (("data/cache-size.c": line 83),6) Name {nameId = 18935})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),9) Name {nameId = 18948})
+	(NodeInfo ("data/cache-size.c": line 90) (("data/cache-size.c": line 90),6) Name {nameId = 18950})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),9) Name {nameId = 18976})
+	(NodeInfo ("data/cache-size.c": line 94) (("data/cache-size.c": line 94),6) Name {nameId = 18978})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),6) Name {nameId = 18982})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),9) Name {nameId = 18986})
+	(NodeInfo ("data/cache-size.c": line 96) (("data/cache-size.c": line 96),14) Name {nameId = 18989})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),14) Name {nameId = 19005})
+	(NodeInfo ("data/cache-size.c": line 100) (("data/cache-size.c": line 100),9) Name {nameId = 19007})
+
+
+

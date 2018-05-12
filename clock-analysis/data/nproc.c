@@ -22,7 +22,6 @@ void work() {
 typedef struct {
     pthread_mutex_t lock;
     double work_time;
-    /* double other_time; */
     size_t num_samples;
     int keep_running;
 } timing_data;
@@ -30,16 +29,11 @@ typedef struct {
 void* timing_thread(void* thd_data) {
     timing_data* data = thd_data;
     struct timespec t1,t2;
-    /* t1 = get_time(); */
-    /* t2 = get_time(); */
 
     double outer_time = 0, inner_time = 0;
 
     while(data->keep_running) {
         t1 = get_time();
-
-        /* outer_time =    1000.0*t1.tv_sec + 1e-6*t1.tv_nsec */
-        /*              - (1000.0*t2.tv_sec + 1e-6*t2.tv_nsec); */
 
         work();
 
@@ -48,7 +42,6 @@ void* timing_thread(void* thd_data) {
         inner_time = 1000.0*t2.tv_sec + 1e-6*t2.tv_nsec
                      - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec);
         data->work_time += inner_time;
-        /* data->other_time += outer_time; */
         ++data->num_samples;
         pthread_mutex_unlock(&data->lock);
     }
@@ -95,7 +88,7 @@ int main(void) {
             }
 
             double on_time = timings[i].work_time/timings[i].num_samples;
-            timings[i].work_time = 0; //timings[i].other_time = 0;
+            timings[i].work_time = 0;
 
             timings[i].num_samples = 0;
 

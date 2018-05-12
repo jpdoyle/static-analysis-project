@@ -81,10 +81,6 @@ int main(void) {
                     missed = (1000.0*t4.tv_sec + 1e-6*t4.tv_nsec
                        - (1000.0*t3.tv_sec + 1e-6*t3.tv_nsec) > 1.1*CHUNK_SIZE*avg_time);
                     misses += missed;
-                    /* if(1000.0*t2.tv_sec + 1e-6*t2.tv_nsec */
-                    /*    - (1000.0*t1.tv_sec + 1e-6*t1.tv_nsec) > 1.1*CHUNK_SIZE*avg_time) { */
-                    /*     ++misses; */
-                    /* } */
                 }
             }
 
